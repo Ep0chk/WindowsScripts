@@ -1,0 +1,29 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\shell\GetFileHash]
+"MUIVerb"="Hash"
+"SubCommands"=""
+
+[HKEY_CLASSES_ROOT\*\shell\GetFileHash\shell]
+
+# Define hash algorithms
+$hashAlgorithms = @(
+    @{name='SHA1'; displayName='SHA1'; command='sha1'},
+    @{name='SHA256'; displayName='SHA256'; command='sha256'},
+    @{name='SHA384'; displayName='SHA384'; command='sha384'},
+    @{name='SHA512'; displayName='SHA512'; command='sha512'},
+    @{name='MACTripleDES'; displayName='MACTripleDES'; command='mactripledes'},
+    @{name='MD5'; displayName='MD5'; command='md5'},
+    @{name='RIPEMD160'; displayName='RIPEMD160'; command='ripemd160'}
+)
+
+# Generate context menu options
+foreach ($hashAlgorithm in $hashAlgorithms) {
+    $displayName = $hashAlgorithm.displayName
+    $command = "powershell.exe -NoExit -Command ""Get-FileHash -LiteralPath '%1' -Algorithm $($hashAlgorithm.command) | Format-List"""
+    
+    $regPath = "HKCR:\*\shell\GetFileHash\shell\{0:d2}{1}" -f $hashAlgorithm.name.Length, $hashAlgorithm.name
+    New-Item -Path $regPath -Force | Out-Null
+    Set-ItemProperty -Path $regPath -Name "MUIVerb" -Value $displayName
+    Set-ItemProperty -Path $regPath -Name "command" -Value $command
+}
